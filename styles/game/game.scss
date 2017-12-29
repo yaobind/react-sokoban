@@ -1,0 +1,12 @@
+@import "../mixins";
+
+.game-container {
+  height: 100vh;
+}
+.game-area {
+  border: 1px solid blue;
+
+  margin: auto;
+
+  @include center-element;
+}
