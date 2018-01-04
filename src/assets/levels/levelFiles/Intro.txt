@@ -1,0 +1,40 @@
+######
+#@$ .#
+######
+; level 1:An introduction to the game
+
+ #########
+ #@####  #
+ #$#     #
+ # #  ## #
+ # ## ## #
+## ## ## #
+#  ## ## #
+#     ## #
+####  ##.#
+   #######
+; level 2:A more advanced level
+
+####
+#@ #
+#$$#
+#  #
+#..#
+####
+; level 3:Two boxes
+
+#####
+#   ##
+#  $@#
+##$ .#
+ #  .#
+ #####
+; level 4 :A little trickier
+
+########
+# @#   #
+# *$   #
+#  #  ##
+#. #  #
+#######
+; level 5 : two more boxes

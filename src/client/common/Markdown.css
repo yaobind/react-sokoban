@@ -1,0 +1,14 @@
+.M {
+    margin: 0 24px 24px;
+}
+
+
+.M p {
+    text-align: justify;
+    line-height: 1.6em;
+}
+
+.M h3 {
+    padding-top: 2em;
+    padding-bottom: 1em;
+}

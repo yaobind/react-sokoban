@@ -1,0 +1,10 @@
+.Error {
+    border:2px solid orange;
+    background-color: red;
+    position:absolute;
+    display: inline-flex;
+    align-items: center;
+    padding: auto;
+    overflow: hidden;
+    text-align: center;
+}

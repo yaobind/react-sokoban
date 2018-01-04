@@ -1,0 +1,8 @@
+.Target {
+    border:2px solid orange;
+    position:absolute;
+    background-image: url(../../../../../../../assets/images/target_0.jpg);
+    background-size: cover;
+    display: inline-block;
+    padding: auto
+}

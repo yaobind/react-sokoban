@@ -1,0 +1,10 @@
+.PadControls button {
+    width: 64px;
+    height: 64px;
+    text-align: center;
+}
+
+.PadControls .arrow-controls {
+    text-align: center;
+    margin: auto;
+}

@@ -1,0 +1,12 @@
+.World {
+    position:relative;
+    background: url(../../../../../assets/images/floor_0.jpg);
+    border: 1px solid gray;
+}
+
+.world-container {
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    flex-flow: column;
+}

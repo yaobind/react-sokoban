@@ -1,18 +1,9 @@
 import React from 'react';
-import { render } from 'react-dom';
-import { AppContainer } from 'react-hot-loader';
-import App from './app.js';
+import ReactDOM from 'react-dom';
+import './index.css';
+import App from './client/ui/Startup';
 
-render( <AppContainer><App/></AppContainer>, document.querySelector("#app"));
+import registerServiceWorker from './registerServiceWorker';
 
-if (module && module.hot) {
-  module.hot.accept('./app.js', () => {
-    const App = require('./app.js').default;
-    render(
-      <AppContainer>
-        <App/>
-      </AppContainer>,
-      document.querySelector("#app")
-    );
-  });
-}
+ReactDOM.render(<App />, document.getElementById('root'));
+registerServiceWorker();

@@ -1,0 +1,41 @@
+.LevelList h3 {
+    margin: 24px 0;
+    text-align: center;
+    text-transform: capitalize;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+
+}
+
+.LevelList .levels {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.LevelList .levels .level {
+    list-style-type: none;
+    display: flex;
+    text-align: center;
+    min-width: 26%;
+}
+
+.LevelList .levels .level .item {
+    color: #242729;
+    text-decoration: none;
+    position: relative;
+    margin: 0 auto;
+}
+
+.LevelList .level-complete {
+    left:0;
+    top: 0;
+    margin-top: 50%;
+    width: 100%;
+    position:absolute;
+    z-index:1;
+    font-weight: bold;
+}
+
+.LevelList .category-section {
+}
