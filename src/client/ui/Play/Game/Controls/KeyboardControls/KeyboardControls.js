@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import KeyHandler, {KEYPRESS} from 'react-key-handler';
+import KeyHandler, {KEYDOWN} from 'react-key-handler';
 
 /**
  * KeyboardControls
@@ -44,16 +44,12 @@ export class KeyboardControls extends React.Component {
 
         return (
             <div className={"Keyboard-controls"}>
-                <KeyHandler keyEventName={KEYPRESS} keyValue={"z"} onKeyHandle={handle("up")}/>
-                <KeyHandler keyEventName={KEYPRESS} keyValue={"s"} onKeyHandle={handle("down")}/>
-                <KeyHandler keyEventName={KEYPRESS} keyValue={"q"} onKeyHandle={handle("left")}/>
-                <KeyHandler keyEventName={KEYPRESS} keyValue={"d"} onKeyHandle={handle("right")}/>
-                <KeyHandler keyEventName={KEYPRESS} keyValue={"ArrowUp"} onKeyHandle={handle("up")}/>
-                <KeyHandler keyEventName={KEYPRESS} keyValue={"ArrowDown"} onKeyHandle={handle("down")}/>
-                <KeyHandler keyEventName={KEYPRESS} keyValue={"ArrowLeft"} onKeyHandle={handle("left")}/>
-                <KeyHandler keyEventName={KEYPRESS} keyValue={"ArrowRight"} onKeyHandle={handle("right")}/>
-                <KeyHandler keyEventName={KEYPRESS} keyValue={"r"} onKeyHandle={handle("reset")}/>
-                <KeyHandler keyEventName={KEYPRESS} keyValue={"m"} onKeyHandle={handle("menu")}/>
+                <KeyHandler keyEventName={KEYDOWN} keyValue={"ArrowUp"} onKeyHandle={handle("up")}/>
+                <KeyHandler keyEventName={KEYDOWN} keyValue={"ArrowDown"} onKeyHandle={handle("down")}/>
+                <KeyHandler keyEventName={KEYDOWN} keyValue={"ArrowLeft"} onKeyHandle={handle("left")}/>
+                <KeyHandler keyEventName={KEYDOWN} keyValue={"ArrowRight"} onKeyHandle={handle("right")}/>
+                <KeyHandler keyEventName={KEYDOWN} keyValue={"r"} onKeyHandle={handle("reset")}/>
+                <KeyHandler keyEventName={KEYDOWN} keyValue={"m"} onKeyHandle={handle("menu")}/>
                 {children}
             </div>
         )

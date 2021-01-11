@@ -1,0 +1,30 @@
+
+.play-container {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.controls {
+    display: flex;
+    flex: 1;
+}
+
+.control {
+    list-style-type: none;
+}
+
+.play-container .level-complete {
+    position: absolute;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    width: 98px;
+    height: 98px;
+    border: 10px solid #189901;
+    background: #189901;
+    border-radius: 50%;
+    text-align: center;
+    transform: rotate(-30deg);
+    color: #990118;
+    font-weight: bold;
+}
