@@ -14,6 +14,11 @@ import * as _ from 'underscore'
  */
 
 export class LoadLevel extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.onReceiveMove = this.onReceiveMove.bind(this);
+    }
 
     static propTypes = {
         level: PropTypes.shape({
@@ -49,7 +54,7 @@ export class LoadLevel extends React.Component {
 
         if (level && newEntities) {
             this.setState({
-                level : {
+                level: {
                     ...level,
                     entities: _.sortBy(newEntities.map(this.checkEntity(level.rules)), (e) => e.trigger)
                 }
@@ -66,12 +71,30 @@ export class LoadLevel extends React.Component {
 
     componentDidMount() {
         const { ws } = this.props;
-        ws.onmessage = ({ data }) => this.onReceiveMove(data);
+        if (ws) {
+            ws.MSG_HANDLERS['MOVE'] = this.onReceiveMove;
+        } else {
+            console.error('websocket not connected, please refresh!');
+        }
     }
 
-    onReceiveMove = (direction) => {
+    onReceiveMove = ({direction, mover, team}) => {
+        const {isTeamMode, localPlayer, myTeam} = this.props
+        if (!direction) {
+            return;
+        }
+
+        if (!isTeamMode && mover && mover !== localPlayer) {
+            return;
+        }
+
+        if (isTeamMode && team !== myTeam) {
+            return;
+        }
+
         console.log(direction + " in on receive move of loadLevel");
-        const {level} = this.state;
+
+        const { level } = this.state;
         const player = level.entities.filter(e => e.type === "player")[0];
         const vectors = {
             north: { x: 0, y: -1 },
@@ -156,17 +179,21 @@ export class LoadLevel extends React.Component {
     updateEntities = (entities) => {
         const { level } = this.props;
 
-        if (!entities || ! Array.isArray(entities)) return ;
+        if (!entities || !Array.isArray(entities)) return;
         this.updateLevel(level, entities);
     };
 
     render() {
         const { children: renderProp, goBack, level: initialState } = this.props;
-        const { level } = this.state;
+        let { level } = this.state;
+
+        // if (!level && initialState) {
+        //     level = initialState;
+        // }
 
         if (!initialState && !level) {
-            goBack();
-            return <div>Invalid</div>;
+            // goBack();
+            return <div>Invalid: no initialState and level in loadLevel</div>;
         }
         return (
             <div>

@@ -15,7 +15,7 @@ export class LevelList extends React.Component {
     };
 
     render() {
-        const { levels, match, hasWon } = this.props;
+        const { levels, match, hasWon, sendLevelPath } = this.props;
         const levelsByCategory = _.groupBy(levels, "category");
         const categoryKeys = Object.keys(levelsByCategory);
 
@@ -29,9 +29,9 @@ export class LevelList extends React.Component {
                         <ul className={"levels"}>
                             {levelsByCategory[category].map((level) => (
                                 <li className={"level"} key={level.id}>
-                                    <Link className={"item"} to={`${match.url}/${level.id}`}>
+                                    <div className={"item"} onClick={() => sendLevelPath(level.id)}>
                                         <LevelPreview win={hasWon(level.id)} level={level}/>
-                                    </Link>
+                                    </div>
                                 </li>
                             ))}
                         </ul>

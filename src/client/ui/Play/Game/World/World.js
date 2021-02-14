@@ -30,7 +30,6 @@ export class World extends React.Component {
             width: step * level.width,
             height: step * level.height,
             backgroundSize: `${step}px`,
-            margin: `${step}px auto`
         };
 
         return (

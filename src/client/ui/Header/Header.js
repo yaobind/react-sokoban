@@ -12,8 +12,7 @@ export class Header extends React.Component {
                             <li className={"item"}><Link className={"link"} to={"/"}>Home</Link></li>
                         </ol>
                         <ol className={"list right"}>
-                            <li className={"item"}><Link className={"link"} to={"/play"}>Play</Link></li>
-                            <li className={"item"}><Link className={"link"} to={"/about"}>About</Link></li>
+                            <li className={"item transparent"}><Link className={"link"} to={"/play"}>Play</Link></li>
                             <li className={"item"}><Link className={"link"} to={"/help"}>Help</Link></li>
                         </ol>
                     </nav>

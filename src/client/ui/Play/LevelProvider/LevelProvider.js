@@ -1,9 +1,9 @@
 import React from 'react'
 import PropType from 'prop-types'
 
-import {getLevels as getTestLevels} from "../../../../assets/levels/testLevels";
-import {getLevels as getIntroLevels} from "../../../../assets/levels/intoLevels";
-import {getLevels as getOriginalLevels} from "../../../../assets/levels/originalLevels";
+import { getLevels as getTestLevels } from "../../../../assets/levels/testLevels";
+import { getLevels as getIntroLevels } from "../../../../assets/levels/intoLevels";
+import { getLevels as getOriginalLevels } from "../../../../assets/levels/originalLevels";
 
 export class LevelProvider extends React.PureComponent {
 
@@ -13,7 +13,9 @@ export class LevelProvider extends React.PureComponent {
     };
 
     state = {
-        levels: {}
+        levels: {},
+        _loadingLevels: {},
+        loadedCategoriesCount: 0,
     };
 
     componentWillMount() {
@@ -24,28 +26,36 @@ export class LevelProvider extends React.PureComponent {
             test: getTestLevels,
             original: () => getOriginalLevels(0, 10)
         };
+        const categoriesCount = categories.length;
 
-        categories.map(category => {
+        categories.map((category) => {
             const loadLevel = mapLevelCategories[category];
             if (loadLevel) {
-                loadLevel().then(this.handleLoadLevels(category));
+                // NOTE: this is async
+                loadLevel().then(this.handleLoadLevels(category, categoriesCount));
             }
             return category;
         });
     }
 
-    handleLoadLevels = category => (levels) => {
+    handleLoadLevels = (category, categoriesCount) => (levels) => {
         const newLevels = levels.map((l) => ({
             ...l,
             id: `${l.category}-${l.name}`.split(" ").join("-")
         }));
 
         this.setState(prev => ({
-            levels: {
-                ...prev.levels,
+            _loadingLevels: {
+                ...prev._loadingLevels,
                 [category]: newLevels
-            }
-        }))
+            },
+            loadedCategoriesCount: prev.loadedCategoriesCount + 1,
+        }));
+
+
+        if (categoriesCount === this.state.loadedCategoriesCount) {
+            this.setState({levels: this.state._loadingLevels});
+        }
     };
 
     render() {
@@ -57,8 +67,9 @@ export class LevelProvider extends React.PureComponent {
                 ...acc,
                 ...value || []
             ]), []);
+        const isLoaded = levelsArray && levelsArray.length;
 
-        return renderProp(levelsArray, !!levelsArray.length)
+        return renderProp(levelsArray, isLoaded);
     }
 }
 

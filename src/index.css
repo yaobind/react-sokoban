@@ -24,3 +24,16 @@ h2 {
 #root {
     width: 100%;
 }
+
+ul {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 10px;
+}
+li {
+    list-style: none;
+    background: lightseagreen;
+    border-radius: 5px;
+    padding: 5px;
+    margin: 2px;
+}

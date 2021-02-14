@@ -47,7 +47,7 @@ export class PlayLevel extends React.Component {
 
 
     render() {
-        const { level, win, controls } = this.props;
+        const { level, win, controls, isAdmin, isTeamMode } = this.props;
         const chunkSize = this.getChunkSize();
         const players = level.entities.filter(e => e.type === "player");
 
@@ -61,7 +61,7 @@ export class PlayLevel extends React.Component {
                         {this.renderWin()}
 
                         <div className={"controls"}>
-                            <GameControls controls={controls} />
+                            <GameControls controls={controls} isAdmin={isAdmin} isTeamMode={isTeamMode}/>
                         </div>
                     </TouchControls>
                 </KeyboardControls>

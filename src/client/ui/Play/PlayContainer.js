@@ -6,84 +6,49 @@ import LevelList from "./LevelList/LevelList";
 import LoadLevel from "./LoadLevel/LoadLevel";
 import PlayLevel from "./PlayLevel/PlayLevel";
 import LevelProvider from "./LevelProvider/LevelProvider";
-import DirectionSelector from "./DirectionSelector/DirectionSelector";
+import TeamDirections from "./TeamDirections/TeamDirections";
+import ModeSelector from "./ModeSelector/ModeSelector";
+import Ranking from "./Ranking/Ranking";
+import Home from "../Home/Home";
 
 export class PlayContainer extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            ws: null,
+            ws: props.ws,
             singleDirection: null,
-        };
-    }
-
-    componentDidMount() {
-        this.connect();
-        // TODO: select direction menu should do this work
-        // this.setState({ singleDirection: 'south' });
-    }
-
-    timeout = 250; // Initial timeout duration as a class variable
-
-    /**
-     * @function connect
-     * This function establishes the connect with the websocket and also ensures constant reconnection if connection closes
-     */
-    connect = () => {
-        var ws = new WebSocket("ws://67.161.9.16:6969");
-        let that = this; // cache the this
-        var connectInterval;
-
-        // websocket onopen event listener
-        ws.onopen = () => {
-            console.log("connected websocket main component");
-
-            this.setState({ ws: ws });
-
-            that.timeout = 250; // reset timer to 250 on open of websocket connection 
-            clearTimeout(connectInterval); // clear Interval on on open of websocket connection
+            isTeamMode: false,
+            localPlayer: null,
+            myTeam: null,
+            playermap: null,
+            completed: null,
+            rank: null,
         };
 
-        // websocket onclose event listener
-        ws.onclose = e => {
-            console.log(
-                `Socket is closed. Reconnect will be attempted in ${Math.min(
-                    10000 / 1000,
-                    (that.timeout + that.timeout) / 1000
-                )} second.`,
-                e.reason
-            );
-
-            that.timeout = that.timeout + that.timeout; //increment retry interval
-            connectInterval = setTimeout(this.check, Math.min(10000, that.timeout)); //call check function after timeout
-        };
-
-        // websocket onerror event listener
-        ws.onerror = err => {
-            console.error(
-                "Socket encountered error: ",
-                err.message,
-                "Closing socket"
-            );
-
-            ws.close();
-        };
-    }
-
-    /**
-     * utilited by the @function connect to check if the connection is close, if so attempts to reconnect
-     */
-    check = () => {
-        const { ws } = this.state;
-        if (!ws || ws.readyState == WebSocket.CLOSED) {
-            this.connect(); //check if websocket instance is closed, if so call `connect` function.
-        }
+        this.onReceiveNewGame = this.onReceiveNewGame.bind(this);
+        this.sendQuit = this.sendQuit.bind(this);
+        this.onReceiveQuit = this.onReceiveQuit.bind(this);
+        this.onSendTeamMode = this.onSendTeamMode.bind(this);
+        this.onReceiveTeamMode = this.onReceiveTeamMode.bind(this);
+        this.onReceiveRank = this.onReceiveRank.bind(this);
+        this.setWin = this.setWin.bind(this);
+        this.onReceiveComplete = this.onReceiveComplete.bind(this);
     }
 
     onSendMove = (direction) => (level, update) => player => {
-        const { ws, singleDirection } = this.state;
-        if (singleDirection && direction !== singleDirection) {
+        const { ws, isTeamMode, singleDirection, localPlayer, myTeam, completed } = this.state;
+        if (completed) {
+            return;
+        }
+
+        if (!localPlayer) {
+            console.error("No local player, please refresh and input your name");
+            return;
+        }
+
+
+        if (isTeamMode && singleDirection && direction !== singleDirection) {
             console.error(`${direction} is not allowed, you can only go ${singleDirection}!`);
             return;
         }
@@ -91,7 +56,9 @@ export class PlayContainer extends React.Component {
             console.error("No WebSocket connection :(");
             return;
         }
-        ws.send(direction);
+
+        const msg = { type: 'MOVE', content: { direction, mover: localPlayer, team: myTeam} };
+        ws.send(JSON.stringify(msg));
     };
 
     hasWon = (entities) => {
@@ -100,9 +67,135 @@ export class PlayContainer extends React.Component {
             .every(e => entities.filter(b => b.push).some(b => b.x === e.x && b.y === e.y))
     };
 
+    sendLevelPath = path => {
+        const { ws } = this.props;
+        if (ws) {
+            ws.send(JSON.stringify({ type: 'NEW_GAME', content: `/play/${path}` }));
+            console.log(`send transition to /play/${path} to server`);
+        } else {
+            console.error('ws not exist in playContainer, please refresh');
+        }
+    };
+
+    onReceiveNewGame(path) {
+        if (!this.state.localPlayer) {
+            return;
+        }
+        const { history } = this.props;
+        history.push(path);
+        this.setState({ showGame: true, completed: false, rank: null });
+    }
+
+    sendQuit() {
+        const { ws } = this.props;
+        if (ws) {
+            ws.send(JSON.stringify({ type: 'QUIT', content: '' }));
+            console.log(`send quit to server`);
+        } else {
+            console.error('ws not exist in playContainer, please refresh');
+        }
+    }
+
+    onReceiveQuit() {
+        const { history } = this.props;
+        const { ws } = this.props;
+        history.push("/play");
+        this.setState({ showGame: false, completed: false, rank: null, myTeam: null, isTeamMode: false, singleDirection: null });
+        if (ws) {
+            ws.send(JSON.stringify({ type: 'ALL_PLAYERS'}));
+        } else {
+            console.error('ws not exist in playContainer, please refresh');
+        }
+    }
+
+    onSendTeamMode() {
+        const modeAfterToggle = this.state.isTeamMode ? 'SOLO' : 'TEAM';
+        const { ws } = this.props;
+        if (ws) {
+            ws.send(JSON.stringify({ type: 'MODE', content: { mode: modeAfterToggle } }));
+            console.log(`send ${modeAfterToggle} to server`);
+        } else {
+            console.error('ws not exist in playContainer, please refresh');
+        }
+    }
+
+    onReceiveTeamMode({ mode, playermap }) {
+        if (mode) {
+            this.setState({ isTeamMode: mode === 'TEAM', myTeam: null });
+            console.log(`server: MODE toggles to ${mode}`);
+        }
+
+        if (playermap && playermap[this.state.localPlayer]) {
+            const {team, dirlimit} = playermap[this.state.localPlayer];
+            this.setState({myTeam: team, singleDirection: dirlimit, playermap});
+        }
+    }
+
+    onReceiveRank(rank) {
+        console.log('server: rank ' + rank);
+        if (rank) {
+            this.setState({rank});
+        }
+    }
+
+    onReceiveComplete({player, team, time}) {
+        const {completed, localPlayer} = this.state;
+
+        if (completed) {
+            return;
+        }
+        if (player === localPlayer) {
+            this.setState({completed: true});
+        }
+    }
+
+    componentDidMount() {
+        const { ws } = this.props;
+        if (ws) {
+            ws.MSG_HANDLERS['NEW_GAME'] = this.onReceiveNewGame;
+            ws.MSG_HANDLERS['QUIT'] = this.onReceiveQuit;
+            ws.MSG_HANDLERS['MODE'] = this.onReceiveTeamMode;
+            ws.MSG_HANDLERS['RANK'] = this.onReceiveRank;
+            ws.MSG_HANDLERS['COMPLETE'] = this.onReceiveComplete;
+        } else {
+            console.error('ws not exist in playContainer, please refresh!');
+        }
+    }
+
+    setWin = (id, win) => {
+        const { ws, localPlayer, myTeam, completed } = this.state;
+        const won = JSON.parse(localStorage.getItem("ad:rs:won")) || {};
+        // localStorage.setItem("ad:rs:won", JSON.stringify({ ...won, [id]: win }));
+        console.log('you win');
+        if (completed) {
+            return;
+        }
+
+        if (ws) {
+            ws.send(JSON.stringify({ type: 'COMPLETE', content: { player: localPlayer, team:myTeam, time: Date.now() } }));
+            console.log(`send COMPLETE to server`);
+        } else {
+            console.error('ws not exist in playContainer, please refresh');
+        }
+    };
+
+    sendRestart(update, entities) {
+        const { ws, localPlayer, myTeam, isTeamMode } = this.state;
+        if (isTeamMode) {
+            if (ws) {
+                ws.send(JSON.stringify({ type: 'RESTART', content: myTeam }));
+                console.log(`send RESTART to server`);
+            } else {
+                console.error('ws not exist in playContainer, please refresh');
+            }
+        } else {
+            update(entities);
+        }
+    }
+
     render() {
         const { match } = this.props;
-        const { ws } = this.state;
+        const { ws, localPlayer, myTeam, completed } = this.state;
 
         const mapControls = {
             up: this.onSendMove("north"),
@@ -115,49 +208,78 @@ export class PlayContainer extends React.Component {
             const won = JSON.parse(localStorage.getItem("ad:rs:won")) || {};
             return !!won[id];
         };
-        const setWin = (id, win) => {
-            const won = JSON.parse(localStorage.getItem("ad:rs:won")) || {};
-            localStorage.setItem("ad:rs:won", JSON.stringify({ ...won, [id]: win }))
-        };
 
         return (
             <div>
-            <DirectionSelector onSelect={dir => this.setState({ singleDirection: dir })} />
-            <LevelProvider categories={["intro", "original"]}>
-                {/*give the data explicitly*/}
-                {(levels, loaded) => (
-                    !loaded ?
-                        <div><h2>Loading</h2></div>
-                        :
-                        <div>
-                            <Route path={`${match.url}/:id`} render={({ match: { params }, history }) => (
-                                <LoadLevel goBack={history.goBack} level={levels.find(l => l.id === params.id)} ws={ws}>
-                                    {(level, update, initialState) => {
-                                        const controls = {
-                                            up: mapControls.up(level, update),
-                                            down: mapControls.down(level, update),
-                                            left: mapControls.left(level, update),
-                                            right: mapControls.right(level, update),
-                                            reset: () => update(initialState.entities),
-                                            menu: () => history.push("/play")
-                                        };
-                                        if (this.hasWon(level.entities)) {
-                                            setWin(level.id, true);
-                                        }
+                <div className="PlayerName">{this.state.localPlayer}</div>
+                {!this.state.showGame &&
+                    <Home player={this.state.localPlayer}
+                        ws={this.props.ws}
+                        onShowGame={() => this.setState({ showGame: true })}
+                        onSetPlayer={player => this.setState({ localPlayer: player })}
+                    />
+                }
 
-                                        return (
-                                            <PlayLevel
-                                                win={this.hasWon(level.entities)}
-                                                level={level}
-                                                controls={controls} />
-                                        )
-                                    }}
-                                </LoadLevel>
-                            )} />
-                            <Route exact path={match.url} render={(props) => <LevelList {...props} levels={levels} hasWon={getWin} />} />
-                        </div>
-                )}
-            </LevelProvider>
+                {this.state.localPlayer === 'yaobin' &&
+                            <ModeSelector onToggle={() => this.onSendTeamMode()} isTeamMode={this.state.isTeamMode} />
+                }
+
+                {this.state.isTeamMode && <div className={'mode-indicator'}>Team Mode On: <strong>{this.state.myTeam}</strong></div>}
+
+                {(this.state.showGame || this.state.localPlayer === 'yaobin') &&
+                    <div>
+                        <LevelProvider categories={["intro", "original"]}>
+                            {/*give the data explicitly*/}
+                            {(levels, loaded) => (
+                                !loaded ?
+                                    <div><h2>Loading</h2></div>
+                                    :
+                                    <div>
+                                        <Route path={`${match.url}/:id`} render={({ match: { params }, history }) => (
+                                            <LoadLevel goBack={history.goBack}
+                                                level={levels.find(l => l.id === params.id)}
+                                                ws={ws}
+                                                localPlayer={this.state.localPlayer}
+                                                isTeamMode={this.state.isTeamMode}
+                                                myTeam={this.state.myTeam}
+                                            >
+                                                {(level, update, initialState) => {
+                                                    const controls = {
+                                                        up: mapControls.up(level, update),
+                                                        down: mapControls.down(level, update),
+                                                        left: mapControls.left(level, update),
+                                                        right: mapControls.right(level, update),
+                                                        reset: () => this.sendRestart(update, initialState.entities), 
+                                                        menu: () => this.sendQuit(),
+                                                    };
+                                                    if (this.hasWon(level.entities)) {
+                                                        this.setWin(level.id, true);
+                                                    }
+                                                    ws.MSG_HANDLERS['RESTART'] = content => content === myTeam && update(initialState.entities);
+
+                                                    return (
+                                                        <PlayLevel
+                                                            win={this.hasWon(level.entities)}
+                                                            level={level}
+                                                            controls={controls}
+                                                            isAdmin={this.state.localPlayer === 'yaobin'}
+                                                            isTeamMode={this.state.isTeamMode}
+                                                        />
+                                                    )
+                                                }}
+                                            </LoadLevel>
+                                        )} />
+                                        <Route exact path={match.url}
+                                            render={(props) => <LevelList {...props} levels={levels} hasWon={getWin} sendLevelPath={this.sendLevelPath} />}
+                                        />
+                                    </div>
+                            )}
+                        </LevelProvider>
+                        {this.state.isTeamMode && this.state.playermap && 
+                            <TeamDirections myTeam={this.state.myTeam} playermap={this.state.playermap} localPlayer={this.state.localPlayer}/>}
+                        <Ranking rank={this.state.rank}/>    
+                    </div>
+                }
             </div>
         )
     }

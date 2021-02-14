@@ -12,3 +12,47 @@
     font-size: 1.4em;
     margin: 2%;
 }
+
+.hidden {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    color: transparent;
+    border: none;
+    background: transparent;
+}
+
+.Home .Box {
+    position: relative;
+    display: flex;
+    flex-flow: column;
+    width: 100px;
+    height: 100px;
+    color: yellow;
+    justify-content: center;
+    align-items: center;
+    font-size: 15px;
+}
+
+.Home .BoxContainer {
+    margin: 50px;
+    font-size: 10px;
+    position: relative;
+}
+
+.Home .Signature {
+    padding-left: 10px;
+    display: none;
+}
+
+.Home .JoinButton {
+    display: block;
+    width: 100%;
+    margin-top: 5px;
+}
+
+.Home input {
+    display: block;
+    width: 100%;
+    margin-bottom: 5px;
+}
